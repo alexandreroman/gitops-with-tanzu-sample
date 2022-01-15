@@ -1,0 +1,34 @@
+apiVersion: packaging.carvel.dev/v1alpha1
+kind: PackageInstall
+metadata:
+  name: core
+  namespace: gitops-with-tanzu
+  annotations:
+    kapp.k14s.io/change-group: "gitops-with-tanzu/core"
+    kapp.k14s.io/change-rule.create-order: "upsert after upserting gitops-with-tanzu/rbac"
+    kapp.k14s.io/change-rule.delete-order: "delete before deleting gitops-with-tanzu/rbac"
+spec:
+  packageRef:
+    refName: core.gitops-with-tanzu.github.com
+    versionSelection:
+      constraints: ">=1.0.0"
+  serviceAccountName: gitops-with-tanzu-sa
+  values:
+  - secretRef:
+      name: core-values
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: core-values
+  namespace: gitops-with-tanzu
+  annotations:
+    kapp.k14s.io/change-group: "gitops-with-tanzu/core"
+    kapp.k14s.io/change-rule.create-order: "upsert after upserting gitops-with-tanzu/rbac"
+    kapp.k14s.io/change-rule.delete-order: "delete before deleting gitops-with-tanzu/rbac"
+type: Opaque
+stringData:
+  values.yml: |
+    metallb:
+      addresses:
+      - 10.213.73.24-10.213.73.24

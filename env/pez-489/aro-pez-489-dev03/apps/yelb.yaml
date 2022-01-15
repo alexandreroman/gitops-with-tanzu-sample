@@ -1,0 +1,49 @@
+apiVersion: kappctrl.k14s.io/v1alpha1
+kind: App
+metadata:
+  name: yelb
+  namespace: gitops-with-tanzu
+  annotations:
+    kapp.k14s.io/change-group: "gitops-with-tanzu/apps-yelb"
+    kapp.k14s.io/change-rule.create-order.0: "upsert after upserting gitops-with-tanzu/rbac"
+    kapp.k14s.io/change-rule.delete-order.0: "delete before deleting gitops-with-tanzu/rbac"
+    kapp.k14s.io/change-rule.create-order.1: "upsert after upserting gitops-with-tanzu/core"
+    kapp.k14s.io/change-rule.delete-order.1: "delete before deleting gitops-with-tanzu/core"
+spec:
+  serviceAccountName: gitops-with-tanzu-sa
+  fetch:
+  - imgpkgBundle:
+      image: ghcr.io/alexandreroman/yelb-app
+  template:
+  - ytt:
+      paths:
+      - config
+      - config-ext/ingress.yml
+      - config-env/prod
+      valuesFrom:
+      - secretRef:
+          name: yelb-values
+  - kbld:
+      paths:
+      - "-"
+      - .imgpkg/images.yml
+  deploy:
+  - kapp: {}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: yelb-values
+  namespace: gitops-with-tanzu
+  annotations:
+    kapp.k14s.io/change-group: "gitops-with-tanzu/apps-yelb"
+    kapp.k14s.io/change-rule.create-order.0: "upsert after upserting gitops-with-tanzu/rbac"
+    kapp.k14s.io/change-rule.delete-order.0: "delete before deleting gitops-with-tanzu/rbac"
+    kapp.k14s.io/change-rule.create-order.1: "upsert after upserting gitops-with-tanzu/core"
+    kapp.k14s.io/change-rule.delete-order.1: "delete before deleting gitops-with-tanzu/core"
+type: Opaque
+stringData:
+  data.yml: |
+    APP: yelb
+    NAMESPACE: yelb
+    DOMAIN: yelb.10.213.73.23.nip.io
