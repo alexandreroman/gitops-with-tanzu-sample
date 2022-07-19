@@ -1,0 +1,40 @@
+apiVersion: packaging.carvel.dev/v1alpha1
+kind: PackageInstall
+metadata:
+  name: monitoring
+  namespace: gitops-with-tanzu
+  annotations:
+    kapp.k14s.io/change-group: "gitops-with-tanzu/monitoring"
+    kapp.k14s.io/change-rule.create-order.0: "upsert after upserting gitops-with-tanzu/rbac"
+    kapp.k14s.io/change-rule.delete-order.0: "delete before deleting gitops-with-tanzu/rbac"
+    kapp.k14s.io/change-rule.create-order.1: "upsert after upserting gitops-with-tanzu/core"
+    kapp.k14s.io/change-rule.delete-order.1: "delete before deleting gitops-with-tanzu/core"
+spec:
+  packageRef:
+    refName: monitoring.gitops-with-tanzu.github.com
+    versionSelection:
+      constraints: ">=1.0.0"
+  serviceAccountName: gitops-with-tanzu-sa
+  values:
+  - secretRef:
+      name: monitoring-values
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: monitoring-values
+  namespace: gitops-with-tanzu
+  annotations:
+    kapp.k14s.io/change-group: "gitops-with-tanzu/monitoring"
+    kapp.k14s.io/change-rule.create-order.0: "upsert after upserting gitops-with-tanzu/rbac"
+    kapp.k14s.io/change-rule.delete-order.0: "delete before deleting gitops-with-tanzu/rbac"
+    kapp.k14s.io/change-rule.create-order.1: "upsert after upserting gitops-with-tanzu/core"
+    kapp.k14s.io/change-rule.delete-order.1: "delete before deleting gitops-with-tanzu/core"
+type: Opaque
+stringData:
+  values.yml: |
+    grafana:
+      admin:
+        password: changeme
+      ingress:
+        host: grafana.10.220.6.133.nip.io
